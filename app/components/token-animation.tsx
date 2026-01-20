@@ -264,7 +264,7 @@ function TokenAnimation() {
 
               <motion.div
                 animate={{
-                  y: deposited ? 147 : 115,
+                  y: deposited ? 147 : 135,
                   scale: deposited ? 0.7 : 1,
                   filter: deposited ? "blur(4px)" : "blur(0px)",
                 }}
@@ -280,69 +280,72 @@ function TokenAnimation() {
                   if (!token) return null;
 
                   const n = selectedTokens.length;
-                  const angle = n === 1
-                    ? 0
-                    : -80 + (160 / (n - 1)) * index;
-                  const angleRad = (angle * Math.PI) / 180;
-                  const radius = 110;
-                  const centerOffsetY = -30;
-                  const fanX = radius * Math.sin(angleRad);
-                  const fanY = -radius * Math.cos(angleRad) + centerOffsetY;
-
-                  const isTopToken = Math.abs(angle) < 20;
-                  const isRightSide = angle > 0;
+                  const rowHeight = 36;
+                  const tableY = -60 - (n - 1 - index) * rowHeight;
 
                   return (
                     <motion.li
                       key={token.id}
-                      className="flex h-1 items-center gap-2 list-none absolute"
+                      className="flex items-center list-none absolute"
                       animate={{
-                        x: isHoveringTokens && !deposited ? fanX : 0,
-                        y: isHoveringTokens && !deposited ? fanY : 0,
+                        x: isHoveringTokens && !deposited ? 0 : 0,
+                        y: isHoveringTokens && !deposited ? tableY : 0,
                       }}
                       transition={{ type: "spring", duration: 0.4, bounce: 0.1 }}
                     >
-                      <motion.img
-                        layoutId={`token-${token.id}`}
-                        alt={token.name}
-                        className="rounded-full"
-                        src={token.logo}
-                        height={50}
-                        width={50}
+                      <motion.div
+                        className="flex items-center"
                         animate={{
-                          rotate: isHoveringTokens && !deposited
-                            ? 0
-                            : index % 2 === 0
-                              ? 4 * (selectedTokens.length - index + 1)
-                              : -1 * (selectedTokens.length - index + 1) * 4,
+                          width: isHoveringTokens && !deposited ? 140 : 50,
+                          height: isHoveringTokens && !deposited ? rowHeight : 50,
+                          backgroundColor: isHoveringTokens && !deposited ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0)",
+                          borderRadius: isHoveringTokens && !deposited ? 8 : 25,
+                          paddingLeft: isHoveringTokens && !deposited ? 4 : 0,
+                          paddingRight: isHoveringTokens && !deposited ? 12 : 0,
                         }}
                         transition={{ type: "spring", duration: 0.4, bounce: 0.1 }}
-                      />
+                      >
+                        <motion.img
+                          layoutId={`token-${token.id}`}
+                          alt={token.name}
+                          className="rounded-full flex-shrink-0"
+                          src={token.logo}
+                          animate={{
+                            width: isHoveringTokens && !deposited ? 28 : 50,
+                            height: isHoveringTokens && !deposited ? 28 : 50,
+                            rotate: isHoveringTokens && !deposited
+                              ? 0
+                              : index % 2 === 0
+                                ? 4 * (selectedTokens.length - index + 1)
+                                : -1 * (selectedTokens.length - index + 1) * 4,
+                          }}
+                          transition={{ type: "spring", duration: 0.4, bounce: 0.1 }}
+                        />
+                        <AnimatePresence>
+                          {isHoveringTokens && !deposited && (
+                            <motion.div
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: -10 }}
+                              transition={{ type: "spring", duration: 0.3, bounce: 0, delay: 0.05 }}
+                              className="flex items-center justify-between flex-1 ml-2"
+                            >
+                              <span className="text-[11px] font-medium text-gray-700">{token.name}</span>
+                              <span className="text-[11px] text-gray-500">{token.price}</span>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                      {/* Divider line */}
                       <AnimatePresence>
-                        {isHoveringTokens && !deposited && (
-                          <motion.span
-                            initial={{
-                              opacity: 0,
-                              x: isTopToken ? 0 : (isRightSide ? -10 : 10),
-                              y: isTopToken ? 10 : 0
-                            }}
-                            animate={{ opacity: 1, x: 0, y: 0 }}
-                            exit={{
-                              opacity: 0,
-                              x: isTopToken ? 0 : (isRightSide ? -10 : 10),
-                              y: isTopToken ? 10 : 0
-                            }}
+                        {isHoveringTokens && !deposited && index < n - 1 && (
+                          <motion.div
+                            initial={{ opacity: 0, scaleX: 0 }}
+                            animate={{ opacity: 1, scaleX: 1 }}
+                            exit={{ opacity: 0, scaleX: 0 }}
                             transition={{ type: "spring", duration: 0.3, bounce: 0, delay: 0.1 }}
-                            className={`absolute whitespace-nowrap text-[11px] text-gray-600/80 ${
-                              isTopToken
-                                ? "bottom-10 right-0"
-                                : isRightSide
-                                  ? "left-14"
-                                  : "right-14"
-                            }`}
-                          >
-                            {token.name} · {token.price}
-                          </motion.span>
+                            className="absolute -bottom-[1px] left-2 right-2 h-[1px] bg-gray-200"
+                          />
                         )}
                       </AnimatePresence>
                     </motion.li>
