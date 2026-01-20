@@ -1,2 +1,2 @@
-deposit animation: /tokens
-trash animation: /
+- deposit animation: `/tokens`
+- trash animation: `/`
