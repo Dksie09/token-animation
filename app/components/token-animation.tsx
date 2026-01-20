@@ -14,12 +14,20 @@ interface Token {
 
 const TOKENS: Token[] = [
   { id: "sol", name: "SOL", logo: "/token-logo/sol.png", price: "$10.52", logoClassName: "p-1 rounded" },
-  { id: "usdc", name: "USDC", logo: "/token-logo/usdc.png", price: "$10.52", logoClassName: "p-1 rounded" },
-  { id: "eth", name: "ETH", logo: "/token-logo/eth.png", price: "$10.52", logoClassName: "rounded-full" },
-  { id: "usdt", name: "USDT", logo: "/token-logo/usdt.png", price: "$10.52", logoClassName: "rounded-full" },
-  { id: "link", name: "LINK", logo: "/token-logo/link.png", price: "$10.52", logoClassName: "p-1 rounded" },
-  { id: "matic", name: "MATIC", logo: "/token-logo/matic.png", price: "$10.52", logoClassName: "p-1 rounded" },
+  { id: "usdc", name: "USDC", logo: "/token-logo/usdc.png", price: "$10.39", logoClassName: "p-1 rounded" },
+  { id: "eth", name: "ETH", logo: "/token-logo/eth.png", price: "$9.99", logoClassName: "rounded-full" },
+  { id: "usdt", name: "USDT", logo: "/token-logo/usdt.png", price: "$8.21", logoClassName: "rounded-full" },
+  { id: "link", name: "LINK", logo: "/token-logo/link.png", price: "$1.11", logoClassName: "p-1 rounded" },
+  { id: "matic", name: "MATIC", logo: "/token-logo/matic.png", price: "$1.10", logoClassName: "p-1 rounded" },
 ];
+
+function calculateTotalValue(tokens: Token[]): string {
+  const total = tokens.reduce((sum, token) => {
+    const price = parseFloat(token.price.replace("$", ""));
+    return sum + price;
+  }, 0);
+  return `$${total.toFixed(2)}`;
+}
 
 interface TokenItemProps {
   token: Token;
@@ -74,11 +82,32 @@ function TokenItem({ token, isSelected, onToggle }: TokenItemProps) {
   );
 }
 
+interface DepositSummaryProps {
+  selectedTokenIds: string[];
+}
+
+function DepositSummary({ selectedTokenIds }: DepositSummaryProps) {
+  const selectedTokens = TOKENS.filter((t) => selectedTokenIds.includes(t.id));
+  const total = calculateTotalValue(selectedTokens);
+
+  return (
+    <motion.span
+      initial={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+      className="text-[13px] text-gray-500"
+    >
+      {selectedTokens.length} token{selectedTokens.length > 1 ? "s" : ""} • {total}
+    </motion.span>
+  );
+}
+
 function TokenAnimation() {
   const [selectedTokens, setSelectedTokens] = useState<string[]>([]);
   const [readyToDeposit, setReadyToDeposit] = useState(false);
   const [deposited, setDeposited] = useState(false);
   const [hide, setHide] = useState(false);
+  const [isHoveringTokens, setIsHoveringTokens] = useState(false);
 
   const tokensToShow = readyToDeposit
     ? TOKENS.filter((t) => !selectedTokens.includes(t.id))
@@ -171,14 +200,6 @@ function TokenAnimation() {
                   </svg>
                   Back
                 </button>
-                <button className="flex w-12 flex-col items-center gap-[1px] rounded-lg pt-[6px] pb-1 text-[10px] font-medium text-[#8D8D86]">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5"/>
-                    <path d="M12 11v5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                    <circle cx="12" cy="8" r="1.5" fill="currentColor"/>
-                  </svg>
-                  Info
-                </button>
                 <button
                   onClick={() => setReadyToDeposit(true)}
                   className="flex w-12 flex-col items-center gap-[1px] rounded-lg bg-[#F9F9F8] pt-[6px] pb-1 text-[10px] font-medium text-[#8D8D86] hover:bg-[#EFF6FF] hover:text-[#3B82F6]"
@@ -190,33 +211,49 @@ function TokenAnimation() {
                   </svg>
                   Deposit
                 </button>
+                <button className="flex w-12 flex-col items-center gap-[1px] rounded-lg pt-[6px] pb-1 text-[10px] font-medium text-[#8D8D86]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5"/>
+                    <path d="M12 11v5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                    <circle cx="12" cy="8" r="1.5" fill="currentColor"/>
+                  </svg>
+                  Info
+                </button>
+           
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Confirm button when ready to deposit */}
+        {/* Summary and confirm button when ready to deposit */}
         {readyToDeposit && (
           <motion.div
             initial={{ scale: 1.2, opacity: 0, filter: "blur(4px)" }}
             animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
             transition={{ duration: 0.3, bounce: 0, type: "spring" }}
-            className="absolute bottom-10 flex flex-col gap-2"
+            className="absolute bottom-12 flex flex-col items-center gap-3"
           >
-            <button
+            <DepositSummary selectedTokenIds={selectedTokens} />
+            <motion.button
+              initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ type: "spring", duration: 0.4, bounce: 0, delay: 0.1 }}
               onClick={() => setDeposited(true)}
               className="flex h-8 w-[200px] items-center justify-center gap-[15px] rounded-full bg-[#3B82F6] text-center text-[13px] font-semibold text-white"
             >
-              {/* Deposit {selectedTokens.length} Token{selectedTokens.length > 1 ? "s" : ""} */}
               Confirm Deposit
-            </button>
+            </motion.button>
           </motion.div>
         )}
 
         {/* Box animation */}
         <AnimatePresence>
           {readyToDeposit && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 z-10 h-[152px] w-32 -translate-y-1/2">
+            <div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 z-10 h-[152px] w-32 -translate-y-1/2"
+              onMouseEnter={() => setIsHoveringTokens(true)}
+              onMouseLeave={() => setIsHoveringTokens(false)}
+            >
               <motion.div
                 initial={{ scale: 1.2, filter: "blur(4px)", opacity: 0 }}
                 animate={{ scale: 1, filter: "blur(0px)", opacity: 1 }}
@@ -227,7 +264,7 @@ function TokenAnimation() {
 
               <motion.div
                 animate={{
-                  y: deposited ? 147 : 110,
+                  y: deposited ? 147 : 115,
                   scale: deposited ? 0.7 : 1,
                   filter: deposited ? "blur(4px)" : "blur(0px)",
                 }}
@@ -241,8 +278,30 @@ function TokenAnimation() {
                 {selectedTokens.map((tokenId, index) => {
                   const token = TOKENS.find((t) => t.id === tokenId);
                   if (!token) return null;
+
+                  const n = selectedTokens.length;
+                  const angle = n === 1
+                    ? 0
+                    : -80 + (160 / (n - 1)) * index;
+                  const angleRad = (angle * Math.PI) / 180;
+                  const radius = 110;
+                  const centerOffsetY = -30;
+                  const fanX = radius * Math.sin(angleRad);
+                  const fanY = -radius * Math.cos(angleRad) + centerOffsetY;
+
+                  const isTopToken = Math.abs(angle) < 20;
+                  const isRightSide = angle > 0;
+
                   return (
-                    <li key={token.id} className="flex h-1 items-center gap-2 list-none">
+                    <motion.li
+                      key={token.id}
+                      className="flex h-1 items-center gap-2 list-none absolute"
+                      animate={{
+                        x: isHoveringTokens && !deposited ? fanX : 0,
+                        y: isHoveringTokens && !deposited ? fanY : 0,
+                      }}
+                      transition={{ type: "spring", duration: 0.4, bounce: 0.1 }}
+                    >
                       <motion.img
                         layoutId={`token-${token.id}`}
                         alt={token.name}
@@ -250,14 +309,43 @@ function TokenAnimation() {
                         src={token.logo}
                         height={50}
                         width={50}
-                        style={{
-                          rotate:
-                            index % 2 === 0
+                        animate={{
+                          rotate: isHoveringTokens && !deposited
+                            ? 0
+                            : index % 2 === 0
                               ? 4 * (selectedTokens.length - index + 1)
                               : -1 * (selectedTokens.length - index + 1) * 4,
                         }}
+                        transition={{ type: "spring", duration: 0.4, bounce: 0.1 }}
                       />
-                    </li>
+                      <AnimatePresence>
+                        {isHoveringTokens && !deposited && (
+                          <motion.span
+                            initial={{
+                              opacity: 0,
+                              x: isTopToken ? 0 : (isRightSide ? -10 : 10),
+                              y: isTopToken ? 10 : 0
+                            }}
+                            animate={{ opacity: 1, x: 0, y: 0 }}
+                            exit={{
+                              opacity: 0,
+                              x: isTopToken ? 0 : (isRightSide ? -10 : 10),
+                              y: isTopToken ? 10 : 0
+                            }}
+                            transition={{ type: "spring", duration: 0.3, bounce: 0, delay: 0.1 }}
+                            className={`absolute whitespace-nowrap text-[11px] text-gray-600/80 ${
+                              isTopToken
+                                ? "bottom-10 right-0"
+                                : isRightSide
+                                  ? "left-14"
+                                  : "right-14"
+                            }`}
+                          >
+                            {token.name} · {token.price}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </motion.li>
                   );
                 })}
               </motion.div>
